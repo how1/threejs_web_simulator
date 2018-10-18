@@ -7,6 +7,7 @@ import { config } from './physics/Config.js';
 import { simple } from './physics/Simple.js';
 import 'normalize.css/normalize.css';
 import './styles/styles.scss';
+import { makePlanes, removePlanes } from './physics/RenderPlanes.js';
 
 init();
 
@@ -18,14 +19,15 @@ const update = () => {
 	}
 	bodies.forEach((body) => {		
 		stepSimulation(body);
-	})
+	});
+
 };
 
 const render = () => {
 	renderer.render( scene, camera );
 };
 
-export const GameLoop = () => {	
+const GameLoop = () => {	
 	requestAnimationFrame( GameLoop );
 	update();
 	render();

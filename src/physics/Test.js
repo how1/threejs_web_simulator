@@ -186,7 +186,7 @@ const ApplyImpulse = (col) => {
 
 export const stepSimulation = (body) => {
 	const gravityNormalVector = new THREE.Vector3(0,-1,0);
-	if (body.mesh.position.y - body.radius > -config.bounds/2) {
+	if (body.mesh.position.y - body.radius > -config.activeBounds/2) {
 		if (body.status != RESTING) {
 			body.AddForce (gravityNormalVector.multiplyScalar(body.mass * config.gravity));
 		}

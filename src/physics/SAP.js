@@ -145,27 +145,27 @@ const wallCollisions = () => {
 	//top, bottom, front, back, left, right
 	bodies.forEach((body) => {
 		//bottom
-		if (body.mins [1].value < -config.bounds/2 + boundsTol + SAPtol) {
+		if (body.mins [1].value < -config.activeBounds/2 + boundsTol + SAPtol) {
 			wallCols.push (addPlaneCollision(body, bottomBody, up, body.velocityVector));
 		}
 		//top
-		else if (body.maxs [1].value > config.bounds/2 - boundsTol - SAPtol) {
+		else if (body.maxs [1].value > config.activeBounds/2 - boundsTol - SAPtol) {
 			wallCols.push (addPlaneCollision(body, topBody, down, body.velocityVector));
 		}
 		//front // front and back switched in Unity >>> threejs
-		if (body.mins [2].value < -config.bounds/2 + boundsTol + SAPtol) {
+		if (body.mins [2].value < -config.activeBounds/2 + boundsTol + SAPtol) {
 			wallCols.push (addPlaneCollision(body, backBody, vForward, body.velocityVector));
 		}
 		//back
-		else if (body.maxs [2].value > config.bounds/2 - boundsTol - SAPtol) {
+		else if (body.maxs [2].value > config.activeBounds/2 - boundsTol - SAPtol) {
 			wallCols.push (addPlaneCollision(body, frontBody, vBackward, body.velocityVector));
 		}
 		//left
-		if (body.mins [0].value < -config.bounds/2 + boundsTol + SAPtol) {
+		if (body.mins [0].value < -config.activeBounds/2 + boundsTol + SAPtol) {
 			wallCols.push (addPlaneCollision(body, leftBody, vRight, body.velocityVector));
 		}
 		//right
-		else if (body.maxs [0].value > config.bounds/2 - boundsTol - SAPtol) {
+		else if (body.maxs [0].value > config.activeBounds/2 - boundsTol - SAPtol) {
 			wallCols.push (addPlaneCollision(body, rightBody, vLeft, body.velocityVector));
 		}
 	});

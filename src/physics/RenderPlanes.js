@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { config } from "./Config.js";
 import { Plane } from './Plane.js';
+import { scene } from './Initialize.js';
 
 
 export let bottomBody;

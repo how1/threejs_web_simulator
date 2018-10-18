@@ -65,7 +65,7 @@ export const init = () => {
 	const ambientLight = new THREE.AmbientLight( 0xcccccc, 1 );
 	scene.add(ambientLight);
 
-
+	config.activeBounds = config.bounds;
 	makePlanes(scene, config.bounds);
 
 
@@ -74,12 +74,22 @@ export const init = () => {
 	// const NOCOLLISION = 0;
 	// const CONTACT = 1;
 	// const PENETRATING = 2;
-
+	let tooManyObjects = false;
 	const createSphere = (radius, mass, pos) => {
 
 		const blue = 0x0000ff;
+		let colors = [0,1,2,3,4,5,6,7,8,9,'a','b','c','d','e','f'];
+		let r1 = Math.floor(Math.random() * colors.length);
+		let r2 = Math.floor(Math.random() * colors.length);
+		let g1 = Math.floor(Math.random() * colors.length);
+		let g2 = Math.floor(Math.random() * colors.length);
+		let b1 = Math.floor(Math.random() * colors.length);
+		let b2 = Math.floor(Math.random() * colors.length);
+		let color = '0x' + colors[r1] + colors[r2] + colors[g1] + colors[g2] + colors[b1] + colors[b2];
+		color = parseInt(color);
+
 		const sphereGeometry = new THREE.SphereGeometry( radius, config.sphereVerts, config.sphereVerts );
-		const sphereMaterial = new THREE.MeshPhongMaterial( {color: blue} );
+		const sphereMaterial = new THREE.MeshPhongMaterial( {color: color} );
 		const sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
 		const body = Particle(sphere, radius, mass);
 		spheres.push(sphere);
@@ -87,25 +97,13 @@ export const init = () => {
 		let fail = true;
 		sphere.position.copy(pos);
 		if (bodies.length > 0){
-			while(fail){
+			let loop = 0;
+			while(fail && loop < 100){
+				loop++;
 				fail = false;
-				
 				const xPos = Math.random() * (config.bounds/2-radius) * indices[Math.floor(Math.random() * 2)];
 				const yPos = Math.random() * (config.bounds/2-radius) * indices[Math.floor(Math.random() * 2)];
 				const zPos = Math.random() * (config.bounds/2-radius) * indices[Math.floor(Math.random() * 2)];
-				
-				// const xPos = 30; x col test
-				// const yPos = -30;
-				// const zPos = 0;
-
-				// const xPos = 0; //y col test
-				// const yPos = -30;
-				// const zPos = 0;
-
-				// const xPos = 0; //z col test
-				// const yPos = -30;
-				// const zPos = -30;
-
 				pos = new THREE.Vector3(xPos, yPos, zPos);
 				sphere.position.copy(pos);
 				bodies.forEach((otherBody) => {
@@ -117,9 +115,11 @@ export const init = () => {
 					}
 				});
 			}
+			if (loop >= 100){
+				tooManyObjects = true;
+			}
 		}
 		
-
 		bodies.push(body);
 		scene.add(sphere);
 	};
@@ -132,6 +132,13 @@ export const init = () => {
 		// createSphere(radius, config.mass, new THREE.Vector3(-30,-30,0)); x coll test
 		// createSphere(radius, config.mass, new THREE.Vector3(0,-30, 30)); //y coll test
 		createSphere(radius, config.mass, new THREE.Vector3()); //y coll test
+
+		if (tooManyObjects){
+			if (config.whichBroad == 2){
+				startSweepAndPrune(bodies);
+			}
+			return;
+		}
 	}
 
 	let index = [-1, 1];
