@@ -1,3 +1,5 @@
+//Henry Owen
+
 //Sweep and Prune broad-phase algorithm
 //Thanks to http://www.codercorner.com/SAP.pdf <-- for general explanation
 //and https://github.com/mattleibow/jitterphysics/wiki/Sweep-and-Prune <--for SortAxis function
@@ -34,19 +36,19 @@ const pairManager = () => {
 		pairs: [],
 
 		addPair: function(i, j){ //integer indices of two bodies
-			this.pairs [i, j] = 1;
+			this.pairs [i][j] = 1;
 		},
 		
 		removePair: function(i, j){ //indicies
-			this.pairs [i, j] = 0;
+			this.pairs [i][j] = 0;
 		},
 
 		getCollisionPairs: function(){
 			let cols = [];
-			for (let i = 0; i < bodies.length; i++) {
-				for (let j = 0; j < bodies.length; j++) {
-					if (this.pairs [i, j] == 1) {
-						cols.push (addParticleCollision(bodies[i], bodies[j]));
+			for (let i = 0; i < bodies.length; i++){
+				for (let j = bodies.length-1; j > i; j--){
+					if (this.pairs [i][j] == 1 || this.pairs[j][i] == 1) {
+						cols.push(addParticleCollision(bodies[i], bodies[j]));
 					}
 				}
 			}
@@ -58,7 +60,13 @@ const pairManager = () => {
 export const startSweepAndPrune = (b) => {
 	bodies = b;
 	pm = pairManager (bodies);
-	let i = 0;
+	for (let i = 0; i < bodies.length; i++) {
+		let tmp = [];
+		for (let j = 0; j < bodies.length; j++) {
+			tmp.push(0);
+		}
+		pm.pairs.push(tmp);
+	}
 	bodies.forEach((b, i) => {
 		b.index = i;
 	});
@@ -76,8 +84,7 @@ export const getSAPCollisions = () => {
 	updateEndpoints();
 	let cols = [];
 	cols = wallCollisions ();
-	cols.concat(pm.getCollisionPairs ());
-	return cols;
+	return cols.concat(pm.getCollisionPairs());
 }
 
 const setEndPoints = () => {
@@ -100,7 +107,6 @@ const setEndPoints = () => {
 		bodies [i].mins.push(xMin);
 		bodies [i].mins.push(yMin);
 		bodies [i].mins.push(zMin);
-
 		bodies [i].maxs.push(xMax);
 		bodies [i].maxs.push(yMax);
 		bodies [i].maxs.push(zMax);
@@ -114,6 +120,7 @@ const setEndPoints = () => {
 		zEndPoints.push (zMax);
 
 	}
+
 	sortEndpoints ();
 }
 
@@ -133,29 +140,6 @@ const sortEndpoints = () => {
 	zEndPoints.sort ((a,b) => Compare(a,b));
 }
 
-const overlapTest = (i, k) => {
-	let a = bodies [i];
-	let b = bodies [k];
-	if (a.mins [0].value < b.mins [0].value && a.maxs [0].value > b.mins [0].value 
-		|| b.mins [0].value < a.mins [0].value && b.maxs [0].value > a.mins [0].value
-		|| a.mins[0].value > b.mins[0].value && a.maxs[0].value < b.maxs[0].value
-		|| b.mins[0].value > a.mins[0].value && b.maxs[0].value < a.maxs[0].value) {
-		if (a.mins [1].value < b.mins [1].value && a.maxs [1].value > b.mins [1].value 
-			|| b.mins [1].value < a.mins [1].value && b.maxs [1].value > a.mins [1].value
-			|| a.mins[1].value > b.mins[1].value && a.maxs[1].value < b.maxs[1].value
-			|| b.mins[1].value > a.mins[1].value && b.maxs[1].value < a.maxs[1].value) {
-			if (a.mins [2].value < b.mins [2].value && a.maxs [2].value > b.mins [2].value 
-				|| b.mins [2].value < a.mins [2].value && b.maxs [2].value > a.mins [2].value
-				|| a.mins[2].value > b.mins[2].value && a.maxs[2].value < b.maxs[2].value
-				|| b.mins[2].value > a.mins[2].value && b.maxs[2].value < a.maxs[2].value) {
-				pm.addPair (i, k);
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
 const wallCollisions = () => {
 	let wallCols = [];
 	//top, bottom, front, back, left, right
@@ -168,7 +152,7 @@ const wallCollisions = () => {
 		else if (body.maxs [1].value > config.bounds/2 - boundsTol - SAPtol) {
 			wallCols.push (addPlaneCollision(body, topBody, down, body.velocityVector));
 		}
-		//front
+		//front // front and back switched in Unity >>> threejs
 		if (body.mins [2].value < -config.bounds/2 + boundsTol + SAPtol) {
 			wallCols.push (addPlaneCollision(body, backBody, vForward, body.velocityVector));
 		}
@@ -197,41 +181,13 @@ const updateEndpoints = () => {
 		body.mins [1].value = pos.y - rad - SAPtol;
 		body.mins [2].value = pos.z - rad - SAPtol;
 
-		body.maxs[0].value = pos.x + rad + SAPtol;
-		body.maxs[1].value = pos.y + rad + SAPtol;
-		body.maxs[2].value = pos.z + rad + SAPtol;
+		body.maxs [0].value = pos.x + rad + SAPtol;
+		body.maxs [1].value = pos.y + rad + SAPtol;
+		body.maxs [2].value = pos.z + rad + SAPtol;
 	});
 	SortAxis (xEndPoints);
 	SortAxis (yEndPoints);
 	SortAxis (zEndPoints);
-}
-
-const InsertionSort = (list) => {
-	let i = 1;
-	while (i < list.length) {
-		let j = i;
-		while (j > 0 && list [j - 1].value > list [j].value) {
-			Swap (list [j], list [j - 1]);
-			j -= 1;
-		}
-		i++;
-	}
-}
-
-const Swap = ( a, b ) => {
-	let tmp = a;
-	a = b;
-	b = tmp;
-
-	if (b.isMin && !a.isMin) {
-		if (!overlapTest (a.body.index, b.body.index)) {
-			pm.removePair (a.body.index, b.body.index);
-		}
-	} else if (!b.isMin && a.isMin) {
-		if (overlapTest (a.body.index, b.body.index)) {
-			pm.addPair (a.body.index, b.body.index);
-		}
-	}
 }
 
 const SortAxis = ( axis ) => { //https://github.com/mattleibow/jitterphysics/wiki/Sweep-and-Prune
@@ -247,14 +203,14 @@ const SortAxis = ( axis ) => { //https://github.com/mattleibow/jitterphysics/wik
 			let swapper = axis[i];
 
 			if (keyelement.isMin && !swapper.isMin)
-			{
+			{	
 				if (CheckBoundingBoxes(swapper.body, keyelement.body))
 				{
 					pm.addPair(swapper.body.index, keyelement.body.index);
 				}
 			}
 
-			if (!keyelement.isMin && swapper.isMin)
+			else if (!keyelement.isMin && swapper.isMin)
 			{
 				pm.removePair(swapper.body.index, keyelement.body.index);
 			}
@@ -266,18 +222,12 @@ const SortAxis = ( axis ) => { //https://github.com/mattleibow/jitterphysics/wik
 	}
 }
 
-const CheckBoundingBoxes = (a1, b1) => {
-	let a = new THREE.Vector3();
-	a.copy(a1.mesh.position);
-	let aRad = a1.radius;
-	let b = new THREE.Vector3();
-	b.copy(b1.mesh.position);
-	let bRad = b1.radius;
-	if (a.x + aRad +SAPtol < b.x - bRad -SAPtol) return false; // a is left of b
-	if (a.x - aRad -SAPtol > b.x + bRad +SAPtol) return false; // a is right of b
-	if (a.y + aRad +SAPtol < b.y - bRad -SAPtol) return false; // a is left of b
-	if (a.y - aRad -SAPtol > b.y + bRad +SAPtol) return false; // a is right of b
-	if (a.z + aRad +SAPtol < b.z - bRad -SAPtol) return false; // a is left of b
-	if (a.z - aRad -SAPtol > b.z + bRad +SAPtol) return false; // a is right of b
+const CheckBoundingBoxes = (a, b) => {
+	if (a.mins[0] < b.maxs[0]) return false; // a is left of b
+	if (a.maxs[0] < b.mins[0]) return false; // 
+	if (a.mins[1] < b.maxs[1]) return false; // 
+	if (a.maxs[1] < b.mins[1]) return false; //
+	if (a.mins[2] < b.maxs[2]) return false; //
+	if (a.maxs[2] < b.mins[2]) return false; //
 	return true; // boxes overlap
 }

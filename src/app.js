@@ -16,7 +16,7 @@ const update = () => {
 	} else if (config.whichBroad == 2) {
 		processCollisionObjects(getSAPCollisions());
 	}
-	bodies.forEach((body) => {
+	bodies.forEach((body) => {		
 		stepSimulation(body);
 	})
 };
@@ -25,7 +25,7 @@ const render = () => {
 	renderer.render( scene, camera );
 };
 
-export const GameLoop = () => {
+export const GameLoop = () => {	
 	requestAnimationFrame( GameLoop );
 	update();
 	render();

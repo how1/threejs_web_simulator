@@ -10,7 +10,7 @@ export const RESTING = 3;
 // let cols = [];
 
 const COLLISIONTOLERANCE = 0.2;
-const tol = 0.0000000001;
+const tol = 0.000001;
 const dt = 0.016;
 
 export const narrowPhaseParticleCollision = (col) => {
@@ -65,20 +65,21 @@ export const CheckForCollision = (col) => {
 
 export const narrowPhasePlaneCollision = (col) => {
 	let tryAgain = true;
-	let tmp = dt;
+	let dtTmp = dt;
 	let didPen = false;
 	let temp = new THREE.Vector3();
 
-	while (tryAgain && tmp > tol) {
+	while (tryAgain && dtTmp > tol) {
+
 		tryAgain = false;
 		col.body1.planeStatus = CheckGroundPlaneContacts (col);
 		if (col.body1.planeStatus == PENETRATING) {
 			didPen = true;
 			tryAgain = true;
-			tmp /= 2;	
+			dtTmp /= 2;	
 			col.body1.mesh.position.copy(col.body1.oldPosition);
 			temp.copy(col.body1.velocityVector);
-			col.body1.mesh.position.add(temp.multiplyScalar(tmp));
+			col.body1.mesh.position.add(temp.multiplyScalar(dtTmp));
 		} else if (col.body1.planeStatus == CONTACT) {
 			BounceOffPlane (col.body1, col.collisionNormal);
 			col.body1.AddForce(new THREE.Vector3(0,1,0).multiplyScalar(9.8 * col.body1.mass));
@@ -87,13 +88,13 @@ export const narrowPhasePlaneCollision = (col) => {
 			return;
 		}
 
-		if (didPen && col.body1.planeStatus != RESTING) {
-			tryAgain = true;
-			tmp += tmp / 2;	
-			col.body1.mesh.position.copy(col.body1.oldPosition);
-			temp.copy(col.body1.velocityVector);
-			col.body1.mesh.position.add(temp.multiplyScalar(tmp));
-		}
+		// if (didPen && col.body1.planeStatus != RESTING) {
+		// 	tryAgain = true;
+		// 	dtTmp += dtTmp / 2;	
+		// 	col.body1.mesh.position.copy(col.body1.oldPosition);
+		// 	temp.copy(col.body1.velocityVector);
+		// 	col.body1.mesh.position.add(temp.multiplyScalar(dtTmp));
+		// }
 	}
 }
 

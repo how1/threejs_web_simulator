@@ -76,6 +76,7 @@ export const init = () => {
 	// const PENETRATING = 2;
 
 	const createSphere = (radius, mass, pos) => {
+
 		const blue = 0x0000ff;
 		const sphereGeometry = new THREE.SphereGeometry( radius, config.sphereVerts, config.sphereVerts );
 		const sphereMaterial = new THREE.MeshPhongMaterial( {color: blue} );
@@ -84,12 +85,27 @@ export const init = () => {
 		spheres.push(sphere);
 		const indices = [-1,1];
 		let fail = true;
+		sphere.position.copy(pos);
 		if (bodies.length > 0){
 			while(fail){
 				fail = false;
+				
 				const xPos = Math.random() * (config.bounds/2-radius) * indices[Math.floor(Math.random() * 2)];
 				const yPos = Math.random() * (config.bounds/2-radius) * indices[Math.floor(Math.random() * 2)];
 				const zPos = Math.random() * (config.bounds/2-radius) * indices[Math.floor(Math.random() * 2)];
+				
+				// const xPos = 30; x col test
+				// const yPos = -30;
+				// const zPos = 0;
+
+				// const xPos = 0; //y col test
+				// const yPos = -30;
+				// const zPos = 0;
+
+				// const xPos = 0; //z col test
+				// const yPos = -30;
+				// const zPos = -30;
+
 				pos = new THREE.Vector3(xPos, yPos, zPos);
 				sphere.position.copy(pos);
 				bodies.forEach((otherBody) => {
@@ -102,19 +118,21 @@ export const init = () => {
 				});
 			}
 		}
+		
+
 		bodies.push(body);
 		scene.add(sphere);
 	};
 	let radius = config.radius;
-	// createSphere(radius, 1, new THREE.Vector3(0,45,0));
 
 	for (let x = 0; x < config.numObjects; x++){
 		// createSphere(radius, 1, new THREE.Vector3(-1,-config.bounds/2+radius+4,0));	
 		// createSphere(radius, 1, new THREE.Vector3(0,-config.bounds/2+radius+3,-20));	
 		// createSphere(radius, 1, new THREE.Vector3(1,-config.bounds/2+radius+2, 15));	
-		createSphere(radius, config.mass, new THREE.Vector3(0,0,0));	
+		// createSphere(radius, config.mass, new THREE.Vector3(-30,-30,0)); x coll test
+		// createSphere(radius, config.mass, new THREE.Vector3(0,-30, 30)); //y coll test
+		createSphere(radius, config.mass, new THREE.Vector3()); //y coll test
 	}
-
 
 	let index = [-1, 1];
 	bodies.forEach((body) => {

@@ -38,12 +38,11 @@ export const simple = (bodies, stepSimulation) => {
 		cols.push(addPlaneCollision(body, rightBody, vLeft, body.velocityVector));
 		cols.push(addPlaneCollision(body, frontBody, vBackward, body.velocityVector));
 		cols.push(addPlaneCollision(body, backBody, vForward, body.velocityVector));
-		bodies.forEach((otherBody) => {
-			if (body != otherBody){
-				cols.push(addParticleCollision(body, otherBody));
-			}
-		});
-
 	});
+	for (let index = 0; index < bodies.length; index++){
+		for (let x = bodies.length-1; x > index; x--){
+			cols.push(addParticleCollision(bodies[index], bodies[x]))
+		}
+	}
 	return cols;
 }

@@ -6,10 +6,10 @@ import { GameLoop } from '../app.js';
 export let config = {
 	whichBroad: 2,
 	bounds: 100,
-	numObjects: 5,
+	numObjects: 2,
 	gravity: 9.8,
-	radius: 1,
-	initialVelocity: 3000,
+	radius: 10,
+	initialVelocity: 0,
 	drag: 0,
 	cof: 1,
 	mass: 1,
