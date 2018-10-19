@@ -8,6 +8,7 @@ import	"./Simple.js";
 import { CollisionObject } from "./CollisionObject.js";
 import	{ makePlanes } from "./RenderPlanes.js";
 import { startSweepAndPrune } from "./SAP.js";
+import "../styles/components/loader.scss";
 
 
 (function(){var script=document.createElement('script');script.onload=function(){var stats=new Stats();document.body.appendChild(stats.dom);requestAnimationFrame(function loop(){stats.update();requestAnimationFrame(loop)});};script.src='//rawgit.com/mrdoob/stats.js/master/build/stats.min.js';document.head.appendChild(script);})()
@@ -34,13 +35,8 @@ camera.position.z = 100;
 export let bodies = [];
 let spheres = [];
 
-// document.createElement('img')
 export const init = () => {
-
-	// var node = document.createElement("LI");
- //    var textnode = document.createTextNode("Water");
- //    node.appendChild(textnode);
- //    document.getElementById("myList").appendChild(node);
+ 	
  	spheres.forEach((sphere) => {
 		// sphere.geometry.deallocate();
 		sphere.geometry.dispose();
@@ -153,8 +149,6 @@ export const init = () => {
 		let initVel = new THREE.Vector3(Math.random() * directionX, Math.random(0) * directionY, Math.random() * directionZ);
 		body.AddForce(initVel.multiplyScalar(speed * body.mass));
 	});
-
-	// document.getElementById('loader').style = "display:none";	
 
 	if (config.whichBroad == 2){
 		startSweepAndPrune(bodies);
