@@ -7,14 +7,13 @@ export let config = {
 	whichBroad: 2,
 	bounds: 100,
 	activeBounds: 0,
-	planes: [],
-	numObjects: 2,
+	numObjects: 100,
 	gravity: 9.8,
-	radius: 10,
-	initialVelocity: 0,
-	drag: 0,
-	cof: 1,
-	mass: 1,
+	radius: 2,
+	initialVelocity: 1000,
+	drag: .1,
+	cof: .9,
+	mass: 10,
 	sphereVerts: 32
 };
 
@@ -31,7 +30,7 @@ var gui = new dat.GUI();
 
 var physics = gui.addFolder('Config');
 
-physics.add(config, 'whichBroad', { Simple: 1, SAP: 2} );
+physics.add(config, 'whichBroad', { Simple: 1, SAP: 2} ).name('Algorithm');
 physics.add(config, 'bounds').name('Bounds').min(4).max(10000).step(1);
 physics.add(config, 'numObjects').name('# Objects').min(0).max(2500).step(1);
 physics.add(config, 'gravity').name('Gravity').min(-20).max(20).step(.1);
