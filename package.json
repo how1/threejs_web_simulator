@@ -7,6 +7,7 @@
   "scripts": {
     "serve": "live-server public/",
     "build": "webpack",
+    "start": "node server/server.js",
     "dev-server": "webpack-dev-server"
   },
   "dependencies": {
