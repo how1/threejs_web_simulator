@@ -5,7 +5,7 @@
 //and https://github.com/mattleibow/jitterphysics/wiki/Sweep-and-Prune <--for SortAxis function
 import * as THREE from "three";
 import { config } from './Config.js';
-import { Endpoint } from './EndPoint.js';
+import { Endpoint } from './Endpoint.js';
 import { addPlaneCollision, addParticleCollision } from './Test.js';
 import {
 	bottomBody,
