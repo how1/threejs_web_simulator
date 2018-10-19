@@ -8,7 +8,8 @@
     "serve": "live-server public/",
     "build": "webpack",
     "start": "node server/server.js",
-    "dev-server": "webpack-dev-server"
+    "dev-server": "webpack-dev-server",
+    "heroku-postbuild": "yarn run build"
   },
   "dependencies": {
     "babel-cli": "^6.26.0",
