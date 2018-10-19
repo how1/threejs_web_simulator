@@ -5,7 +5,7 @@ import { processCollisionObjects, stepSimulation } from "./physics/Test.js";
 import { getSAPCollisions } from './physics/SAP.js';
 import { config } from './physics/Config.js';
 import { simple } from './physics/Simple.js';
-// import 'normalize.css/normalize.css';
+import './node_modules/normalize.css/normalize.css';
 import './styles/styles.scss';
 import { makePlanes, removePlanes } from './physics/RenderPlanes.js';
 
