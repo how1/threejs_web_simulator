@@ -6,7 +6,7 @@
 import * as THREE from "three";
 import { config } from './Config.js';
 import { Endpoint } from './Endpoint.js';
-import { addPlaneCollision, addParticleCollision } from './Test.js';
+import { addPlaneCollision, addParticleCollision } from './PhysicsEngine.js';
 import {
 	bottomBody,
 	up,

@@ -1,13 +1,14 @@
 import * as THREE from 'three';
 
-import { renderer, scene, camera, bodies, init } from "./physics/Initialize.js";
-import { processCollisionObjects, stepSimulation } from "./physics/Test.js";
-import { getSAPCollisions } from './physics/SAP.js';
+import { bodies, camera, renderer, scene, init } from "./physics/Initialize.js";
 import { config } from './physics/Config.js';
+import { getSAPCollisions } from './physics/SAP.js';
+import { getSpatialMaskCollisions } from './physics/SpatialMasking.js';
+import { makePlanes, removePlanes } from './physics/RenderPlanes.js';
+import { processCollisionObjects, stepSimulation } from "./physics/PhysicsEngine.js";
 import { simple } from './physics/Simple.js';
 import 'normalize.css/normalize.css';
 import './styles/styles.scss';
-import { makePlanes, removePlanes } from './physics/RenderPlanes.js';
 
 init();
 
@@ -16,11 +17,12 @@ const update = () => {
 		processCollisionObjects(simple(bodies, stepSimulation));
 	} else if (config.whichBroad == 2) {
 		processCollisionObjects(getSAPCollisions());
+	} else if (config.whichBroad == 3) {
+		processCollisionObjects(getSpatialMaskCollisions());
 	}
 	bodies.forEach((body) => {		
 		stepSimulation(body);
 	});
-
 };
 
 const render = () => {

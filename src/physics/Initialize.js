@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import  "./OrbitControls.js";
-import { CheckForCollision, addParticleCollision, PENETRATING, NOCOLLISION, CONTACT } from "./Test.js";
+import { CheckForCollision, addParticleCollision, PENETRATING, NOCOLLISION, CONTACT } from "./PhysicsEngine.js";
 import { config } from "./Config.js";
 import { Particle } from "./Particle.js";
 import	"./Plane.js";
@@ -8,6 +8,7 @@ import	"./Simple.js";
 import { CollisionObject } from "./CollisionObject.js";
 import	{ makePlanes } from "./RenderPlanes.js";
 import { startSweepAndPrune } from "./SAP.js";
+import { startSpatialMasking } from "./SpatialMasking.js";
 import "../styles/components/loader.scss";
 
 
@@ -150,8 +151,7 @@ export const init = () => {
 		body.AddForce(initVel.multiplyScalar(speed * body.mass));
 	});
 
-	if (config.whichBroad == 2){
-		startSweepAndPrune(bodies);
-	}
+	startSweepAndPrune(bodies);
+	startSpatialMasking(radius, bodies);
 
 }

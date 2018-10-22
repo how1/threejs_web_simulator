@@ -1,378 +1,213 @@
-// //This NarrowPhase scripts takes care of many aspects of the physics and testing
-// //Many thanks to 
-// //Bourg, David M. “Chapter 13: Implementing Collision Response.” Physics for 
-// //Game Developers, 1st ed., O'Reilly Media, 2002, pp. 205–210. 
-// //for collision response physics (CheckGroundPlaneContacts, CheckForCollision, 
-// //ApplyImpulse, CalcDistanceFromPointToPlane, narrowPhasePlaneCollision, narrowPhaseParticleCollision)
-
 // import * as THREE from 'three';
-// import Plane from './Physics/Plane';
-// import Particle from './Particle';
+import * as THREE from "three";
+import { config } from "./Config.js";
+import { CollisionObject } from "./CollisionObject.js";
 
-// let gravity = 9.8f;
-// physicsEngines = []; 
-// SpatialMasking mask;
-// Simple simple;
-// n2Gravity n2Grav;
-// let whichBroad = 0;
-// const SIMPLE = 0;
-// const SPATIAL = 1;
-// const OCTTREE = 2;
-// const SAP = 3;
-// const NOCOLLISION = 0;
-// const CONTACT = 1;
-// const PENETRATING = 2;
-// let status = 0;     
-// let COLLISIONTOLERANCE = 0.2f;
-// let coefficientOfRestitution = 0.8f;
-// let bounds = 128;
-// let vCollisionNormal;
-// let vRelativeVelocity;
-// let planeCollisionNormal;
-// let startPos;
-// const let tol = 0.0000000000000000001f;
-// let pointsOnPlanes = [];
-// let boundsPlanes = [];
-// let boundsTol;
-// let front;// = { Vector3.up, Vector3.right, pointsOnPlanes [0] };
-// let back;// = { Vector3.up, Vector3.right, pointsOnPlanes [5] };
-// let left;// = { Vector3.up, Vector3.forward, pointsOnPlanes [0] };
-// let right;// = { Vector3.up, Vector3.forward, pointsOnPlanes [3] };
-// let top;// = { Vector3.forward, Vector3.right, pointsOnPlanes [1] };
-// let bottom;// = { Vector3.forward, Vector3.right, pointsOnPlanes [0] };
-// planeIndices = [];// = { front, back, left, right, top, bottom };
-// cols = [];
-// let write = false;
+export const NOCOLLISION = 0;
+export const CONTACT = 1;
+export const PENETRATING = 2;
+export const RESTING = 3;
+// let cols = [];
 
-// void Start(){
-// 	if (!testing) {
-// 		StartNarrowPhase ();
-// 	}
-// }
-// let frameCount = 0;
-// let testNum = 0;
-// void StartNarrowPhase () {
-// 	COLLISIONTOLERANCE = GameControl.gameControl.colTol;
-// 	coefficientOfRestitution = GameControl.gameControl.cof;
-// 	gravity = GameControl.gameControl.gravity;
-// 	boundsTol = COLLISIONTOLERANCE * 2f;
-// 	whichBroad = GameControl.gameControl.whichBroad;
-// 	sweepAndPrune.tol = COLLISIONTOLERANCE;
-// 	physicsEngines = FindObjectsOfType<HRigidBody> ();
-// 	if (!physics) {
-// 		boundsThing.StartBounds ();
-// 	}
+const COLLISIONTOLERANCE = 0.2;
+const tol = 0.000001;
+const dt = 0.016;
 
-// 	pointsOnPlanes = new Vector3[] {
-// 		new let (0, 0, 0),
-// 		new let (0, bounds - boundsTol, 0),
-// 		new let (0, 0, 0),
-// 		new let (0, 0, bounds - boundsTol),
-// 		new let (0, 0, 0),
-// 		new let (bounds - boundsTol, 0, 0)
-// 	};
-// 	boundsPlanes = new Vector3[] {
-// 		new let (0, 0, 0),
-// 		new let (bounds, 0, 0),
-// 		new let (bounds, 0, bounds),
-// 		new let (0, 0, bounds),
-// 		new let (0, 0, 0),
-// 		new let (0, bounds, 0),
-// 		new let (bounds, bounds, 0),
-// 		new let (bounds, bounds, bounds),
-// 		new let (0, bounds, bounds),
-// 		new let (0, 0, bounds),
-// 		new let (0, 0, 0),
-// 		new let (bounds, 0, 0),
-// 		new let (bounds, bounds, 0),
-// 		new let (bounds, bounds, bounds),
-// 		new let (bounds, 0, bounds),
-// 		new let (bounds, bounds, bounds),
-// 		new let (0, bounds, bounds),
-// 		new let (0, bounds, 0)
+export const narrowPhaseParticleCollision = (col) => {
+	let tryAgain = true;
+	let planesCheck = 0;
+	let tempDT = dt;
+	let didPen = false;
 
-// 	};
+	while (tryAgain && tempDT > tol) {
 
-// 	front = new Plane ("front", Vector3.right, Vector3.up, new let (0, 0, 1));
-// 	back = new Plane ("back", Vector3.up, Vector3.right, new let (0, 0, bounds - boundsTol));
-// 	left = new Plane ("left", Vector3.up, Vector3.forward, new let (1, 0, 0));
-// 	right = new Plane ("right", Vector3.forward, Vector3.up, new let (bounds - boundsTol, 0, 0));
-// 	top = new Plane ("top", Vector3.right, Vector3.forward, new let (0, bounds - boundsTol, 0));
-// 	bottom = new Plane ("bottom", Vector3.forward, Vector3.right, new let (0, 1, 0));
-// 	planeIndices = new [] { top, bottom, front, back, left, right };
+		tryAgain = false;
 
-// 	if (whichBroad == SPATIAL) {
-// 		mask.StartMasking (GameControl.gameControl.avgRadius);
-// 	} else if (whichBroad == OCTTREE) {
-// 		octTree.StartOctTree (GameControl.gameControl.minRadius);
-// 	} else if (whichBroad == SAP) {
-// 		sweepAndPrune.StartSweepAndPrune ();
-// 	}
-// 	n2Grav = GetComponent<n2Gravity> ();
-// 	bhAlgorithm = GetComponent<BarnesHutAlg> ();
-// 	if (GameControl.gameControl.objectGravity) {
-// //			n2Grav.StartN2Gravity ();
-// 		bhAlgorithm.StartBHTree (1f);
-// //			spatialGravity = GetComponent<SpatialMaskingGravity>();
-// //			spatialGravity.StartMasking (GameControl.gameControl.bounds / 4);
-// 	}
-// }
-// void initializeVelocity(let velocity){
-// 	for (let i = 0; i < physicsEngines.Length; i++) {
-// 		int[] dirs = {-1, 1};
-// 		let xVel = dirs[Random.Range(0,2)] * (float)(Random.value * velocity);
-// 		let yVel = dirs[Random.Range(0,2)] * (float)(Random.value * (velocity - xVel));
-// 		let zVel = dirs[Random.Range(0,2)] * (float)(velocity - Mathf.Sqrt (xVel * xVel + yVel * yVel));
-// 		physicsEngines [i].velocityVector = new let (xVel, yVel, zVel);
-// 	}
-// }
+		col.body1.status = col.body2.status = CheckForCollision (col);
+		if (col.body1.status == PENETRATING) {
 
-// void FixedUpdate(){
-// 	if (!testing) {
-// 		OnFixedUpdate ();
-// 	}
-// }
+			tempDT /= 2;
+			tryAgain = true;
+			didPen = true;
+			let tempVel = new THREE.Vector3();
 
-// void OnFixedUpdate () {
+			col.body1.mesh.position.copy(col.body1.oldPosition);
+			tempVel.copy(col.body1.velocityVector);
+			col.body1.mesh.position.add(tempVel.multiplyScalar(tempDT));
 
-// 	if (GameControl.gameControl.whichBroad != whichBroad) {
-// 		whichBroad = GameControl.gameControl.whichBroad;
-// 		if (whichBroad == SPATIAL) {
-// 			mask.StartMasking (GameControl.gameControl.avgRadius);
-// 		} else if (whichBroad == OCTTREE) {
-// 			octTree.StartOctTree (GameControl.gameControl.minRadius);
-// 		} else if (whichBroad == SAP) {
-// 			sweepAndPrune.StartSweepAndPrune ();
-// 		}
-// 	}
-// 	if (whichBroad == SIMPLE) {
-// 		simple.SearchForCollisions ();
-// 	} else if (whichBroad == SPATIAL) {
-// 		mask.searchForCollisions ();
-// 	} else if (whichBroad == OCTTREE) {
-// 		octTree.RestartOctTree ();
-// 	} else if (whichBroad == SAP) {
-// 		sweepAndPrune.getSAPCollisions ();
-// 	} 
-// 	if (whichBroad == SAP) {
-// 		processSAPCollisionObjects ();
-// 	} else {
-// 		processCollisionObjects ();
-// 	}
-// 	if (whichBroad == SAP) {
-// 		sweepAndPrune.updateEndpoints ();
-// 	}
-// }
+			col.body2.mesh.position.copy(col.body2.oldPosition);
+			tempVel.copy(col.body2.velocityVector);
+			col.body2.mesh.position.add(tempVel.multiplyScalar(tempDT));
 
+		} else if (col.body1.status == CONTACT) {
+			// col.body1.applyGravity = false;
+			// col.body2.applyGravity = false;
+			ApplyImpulse (col);
+		}
+	}
+}
 
-// //Check for plane collision
-// let CheckGroundPlaneContacts(CollisionObject col){
-// 	let d;
-// 	status = NOCOLLISION;
-// 	//check distance from body1 to the ground plane
-// 	d = CalcDistanceFromPointToPlane(col.body1.transform.position, col.plane.vec1, col.plane.vec2, col.plane.pop);
-// 	let distance = d - col.body1.radius;
-// 	let Vrn = Vector3.Dot (col.body1.velocityVector, planeCollisionNormal);
-// 	if (Mathf.Abs (distance) <= COLLISIONTOLERANCE && Vrn < 0.0) {
-// 		status = CONTACT;
-// 	} else if (distance < 0 ) {//-COLLISIONTOLERANCE
-// 		status = PENETRATING;
-// 	}
-// 	return status;
-// }
+export const CheckForCollision = (col) => {
+	let tmp = new THREE.Vector3();
+	tmp.copy(col.body1.mesh.position);
+	let d = new THREE.Vector3();
+	d.copy(tmp.sub(col.body2.mesh.position));
+	let s = d.length() - col.radiusSum;
+	let Vrn = col.relativeVelocity.dot(col.collisionNormal);
+	if ((Math.abs(s) <= COLLISIONTOLERANCE) && (Vrn < 0.0)) {
+		return CONTACT;
+	} else if (s < 0) {//-COLLISIONTOLERANCE
+		return PENETRATING;
+	} else {
+		return NOCOLLISION;
+	}
+}
 
-// //Input: pt in body, u and v define the plane, ptOnplane is a polet that lies in the plane
-// //Output: Distance from body to plane
-// let CalcDistanceFromPointToPlane(let pt, let u, let v, let ptOnPlane){
-// 	planeCollisionNormal = Vector3.Cross(u, v);
-// 	let PQ = pt - ptOnPlane;
-// 	return Vector3.Dot (PQ, planeCollisionNormal);
-// }
+export const narrowPhasePlaneCollision = (col) => {
+	let tryAgain = true;
+	let dtTmp = dt;
+	let didPen = false;
+	let temp = new THREE.Vector3();
+
+	while (tryAgain && dtTmp > tol) {
+
+		tryAgain = false;
+		col.body1.planeStatus = CheckGroundPlaneContacts (col);
+		if (col.body1.planeStatus == PENETRATING) {
+			didPen = true;
+			tryAgain = true;
+			dtTmp /= 2;	
+			col.body1.mesh.position.copy(col.body1.oldPosition);
+			temp.copy(col.body1.velocityVector);
+			col.body1.mesh.position.add(temp.multiplyScalar(dtTmp));
+		} else if (col.body1.planeStatus == CONTACT) {
+			BounceOffPlane (col.body1, col.collisionNormal);
+			col.body1.AddForce(new THREE.Vector3(0,1,0).multiplyScalar(9.8 * col.body1.mass));
+			// temp.copy(col.body1.velocityVector);
+			// col.body1.mesh.position.add(temp.multiplyScalar(tmp/2));
+			return;
+		}
+
+		// if (didPen && col.body1.planeStatus != RESTING) {
+		// 	tryAgain = true;
+		// 	dtTmp += dtTmp / 2;	
+		// 	col.body1.mesh.position.copy(col.body1.oldPosition);
+		// 	temp.copy(col.body1.velocityVector);
+		// 	col.body1.mesh.position.add(temp.multiplyScalar(dtTmp));
+		// }
+	}
+}
+
+//Input: pt position on body, u and v define the plane, ptOnplane is a point that lies in the plane
+//Output: Distance from body to plane
+const CalcDistanceFromPointToPlane = (pt, plane, normal) => {
+	let tmp = new THREE.Vector3();
+	tmp.copy(pt);
+	let PQ = tmp.sub(plane.pop); //position - point on plane
+	return PQ.dot(normal);
+}
+
+//Check for plane collision
+const CheckGroundPlaneContacts = ( col, count ) => {
+	let status = NOCOLLISION;
+	//check distance from body1 to the ground plane
+	const d = CalcDistanceFromPointToPlane(col.body1.mesh.position, col.plane, col.collisionNormal);
+	// let planeCollisionNormal = d[0];
+	let distance = d - col.body1.radius;
+	let Vrn = col.body1.velocityVector.dot(col.collisionNormal);
+	if (Math.abs (distance) <= COLLISIONTOLERANCE && Vrn < 0.0) {
+		status = CONTACT;
+	} else if (distance < 0 ) {//-COLLISIONTOLERANCE
+		if (count > 1){
+			status = RESTING;
+		} else {
+			status = PENETRATING;
+		}
+	}
+	return status;
+}
+
+export const addPlaneCollision = ( h, p, normal, relV ) => {
+	return CollisionObject ( h, null, p, normal, relV );
+	// cols.push (obj);
+}
+
+export const addParticleCollision = (a, b, normal, relV) => {
+	return CollisionObject( a, b );
+}
+
+//For particle/plane
+//let bodyPlaneMultFactor = 1f;
+const BounceOffPlane = (body, planeCollisionNormal = new THREE.Vector3(0,1,0)) => {
+
+	//let randomization = 0.000f;
+	//let randomizedVector = new let (Random.Range (-1, 1) * randomization, Random.Range (-1, 1) * randomization, Random.Range (-1, 1) * randomization);
+	//planeCollisionNormal = planeCollisionNormal + randomizedVector;
 	
-// let CheckForCollision(CollisionObject col){
-// 	let r = col.body1.radius + col.body2.radius;
-// 	let d = col.body1.transform.position - col.body2.transform.position;
-// 	let s = d.magnitude - r;
-// 	vCollisionNormal = d.normalized;
-// 	vRelativeVelocity = col.body1.velocityVector - col.body2.velocityVector;   
-// 	let Vrn = Vector3.Dot (vRelativeVelocity, vCollisionNormal);
-// 	if ((Mathf.Abs(s) <= COLLISIONTOLERANCE) && (Vrn < 0.0)) {
-// 		return CONTACT;
-// 	} else if (s < 0) {//-COLLISIONTOLERANCE
-// 		return PENETRATING;
-// 	} else {
-// 		return NOCOLLISION;
-// 	}
-// }
+	// body.velocityVector.negate();
+	let tmp = new THREE.Vector3();
+	tmp.copy(planeCollisionNormal);
+	let Vn = tmp.multiplyScalar(planeCollisionNormal.dot(body.velocityVector));
+	let temp = new THREE.Vector3();
+	temp.copy(body.velocityVector);
+	let Vt = temp.sub(Vn);
+	let newVelocityVector = Vt.sub(Vn.multiplyScalar(config.cof));
+	body.velocityVector.copy(newVelocityVector);
 
-// void narrowPhasePlaneCollision(CollisionObject col){
-// 	let tryAgain = true;
-// 	let planesCheck = 0;
-// 	let didPen = false;
-// 	let dt = Time.deltaTime;
+	// body.AddForce (new THREE.Vector3(0,-1,0).multiplyScalar(gravity * body.mass));
 
-// 	while (tryAgain && dt > tol) {
-// 		tryAgain = false;
-// 		planesCheck = CheckGroundPlaneContacts (col);
-// 		if (planesCheck == PENETRATING) {
-// 			dt = dt / 2;	
-// 			tryAgain = true;
-// 			didPen = true;
-// 			col.body1.transform.position = col.body1.oldPosition;
-// 			col.body1.transform.position += col.body1.velocityVector * dt;
-// 		} else if (planesCheck == CONTACT) {
-// 			ApplyImpulse (col.body1);
-// 		}
-// 	}
-// }
+}
 
-// void narrowPhaseParticleCollision(CollisionObject col){
-// 	let tryAgain = true;
-// 	let particlesCheck = 0;
-// 	let didPen = false;
-// 	let dt = Time.deltaTime;
+//For particle/particle
+const ApplyImpulse = (col) => {
+	//let randomization = 0.001f;
+	//let randomizedVector = new let (Random.Range (-1, 1) * randomization, Random.Range (-1, 1) * randomization, Random.Range (-1, 1) * randomization);
+	//col.collisionNormal = col.collisionNormal + randomizedVector;
+	//body1
 
-// 	while (tryAgain && dt > tol) {
-// 		tryAgain = false;
+	let relDotColNorm = col.relativeVelocity.dot(col.collisionNormal);
+	let negativeOneCOF = -(1 + config.cof);
+	let collisionNormalDotColNorm = col.collisionNormal.dot(col.collisionNormal);
+	let MassRelationA = 1 / col.body1.mass + 1 / col.body2.mass;
+	let MassRelationB = 1 / col.body2.mass + 1 / col.body1.mass;
 
-// 		particlesCheck = CheckForCollision (col);
-// 		if (particlesCheck == PENETRATING) {
-// 			dt = dt / 2;
-// 			tryAgain = true;
-// 			didPen = true;
-// 			col.body1.transform.position = col.body1.oldPosition;
-// 			col.body1.transform.position += col.body1.velocityVector * dt;
-// 			col.body2.transform.position = col.body2.oldPosition;
-// 			col.body2.transform.position += col.body2.velocityVector * dt;
-// 		} else if (particlesCheck == CONTACT) {
-// 			col.body1.applyGravity = false;
-// 			col.body2.applyGravity = false;
-// 			ApplyImpulse (col);
-// 		}
-// 	}
-// }
+	let tmp = new THREE.Vector3();
+	let j = (negativeOneCOF * relDotColNorm) / (collisionNormalDotColNorm * MassRelationA);
+	tmp.copy(col.collisionNormal);
+	col.body1.velocityVector.add(tmp.multiplyScalar(j).divideScalar(col.body1.mass));
+	
+	j = negativeOneCOF * relDotColNorm / (collisionNormalDotColNorm * MassRelationB);
+	tmp.copy(col.collisionNormal);
+	col.body2.velocityVector.sub(tmp.multiplyScalar(j).divideScalar(col.body2.mass));
+}
 
-// void stepSimulation(HRigidBody body){
-// 	if ((gravity > 0) && !body.isStatic && body.transform.position.y < bounds - body.radius - 1) {
-// 		body.AddForce (body.mass * gravity * Vector3.down);
-// 	} else if ((gravity < 0) && !body.isStatic && body.transform.position.y > body.radius + 1) {
-// 		body.AddForce (body.mass * gravity * Vector3.down);
-// 	}
-// 	body.applyGravity = true;
-// 	body.SumForces ();
-// 	body.velocityVector += (body.netForceVector / body.mass * Time.deltaTime);
-// 	body.oldPosition = body.transform.position;
-// 	if (!physics) {
-// 		body.transform.position += body.directions * Time.deltaTime;
-// 	} else {
-// 		body.transform.position += body.velocityVector * Time.deltaTime;
-// 		if (body.transform.position == body.oldPosition) {
-// 			body.didMove = false;
-// 		} else
-// 			body.didMove = true;
-// 	}
-// }
+export const stepSimulation = (body) => {
+	const gravityNormalVector = new THREE.Vector3(0,-1,0);
+	if (body.mesh.position.y - body.radius > -config.activeBounds/2) {
+		if (body.status != RESTING) {
+			body.AddForce (gravityNormalVector.multiplyScalar(body.mass * config.gravity));
+		}
+	}
+	body.updateDrag(config.drag);
+	body.SumForces ();
+	body.velocityVector.add(body.netForceVector.divideScalar(body.mass).multiplyScalar(dt));
+	body.oldPosition.copy(body.mesh.position);
+	let tmp = new THREE.Vector3();
+	tmp.copy(body.velocityVector);
+	body.mesh.position.add(tmp.multiplyScalar(dt));
 
-// void addPlaneCollision(let h, let i){
-// 	CollisionObject obj = new CollisionObject (physicsEngines [h], planeIndices[i]);
-// 	cols.Add (obj);
-// }
+	// if (body.mesh.position == body.oldPosition) {
+	// 	body.didMove = false;
+	// } else
+	// 	body.didMove = true;
+}
 
-// void addPlaneCollision(HRigidBody h, let i){
-// 	CollisionObject obj = new CollisionObject (h, planeIndices[i]);
-// 	cols.Add (obj);
-// }
-
-// void addParticleCollision(let h, let i){
-// 	CollisionObject obj = new CollisionObject(physicsEngines[h], physicsEngines[i]);
-// 	cols.Add (obj);
-// }
-
-// void addParticleCollision(HRigidBody h, HRigidBody i){
-// 	cols.Add (new CollisionObject (h, i));
-// }
-
-// void processSAPCollisionObjects(){
-// 	List<CollisionObject> collisions = sweepAndPrune.cols;
-// 	for (let i = 0; i < collisions.Count; i++) {
-// 		processCount++;
-// 		if (collisions[i].body1 && collisions[i].body2) {
-// 			narrowPhaseParticleCollision (collisions[i]);
-// 		} else {
-// 			narrowPhasePlaneCollision (collisions[i]);
-// 		}
-// 	}
-// 	for (let i = 0; i < physicsEngines.Length; i++) {
-// 		stepSimulation (physicsEngines [i]);
-// 	}
-// }
-
-// void processCollisionObjects(){
-// 	for (let i = 0; i < cols.Count; i++) {
-// 		processCount++;
-// 		if (cols[i].body1 && cols[i].body2) {
-// 			narrowPhaseParticleCollision (cols[i]);
-// 		} else {
-// 			narrowPhasePlaneCollision (cols[i]);
-// 		}
-// 	}
-// 	for (let i = 0; i < physicsEngines.Length; i++) {
-// 		stepSimulation (physicsEngines [i]);
-// 	}
-// 	cols.Clear ();
-// }
-
-// //For particle/plane
-// //let bodyPlaneMultFactor = 1f;
-// void ApplyImpulse(HRigidBody body){
-// 	//let randomization = 0.000f;
-// 	//let randomizedVector = new let (Random.Range (-1, 1) * randomization, Random.Range (-1, 1) * randomization, Random.Range (-1, 1) * randomization);
-// 	//planeCollisionNormal = planeCollisionNormal + randomizedVector;
-// 	let N = planeCollisionNormal;
-// 	let V = body.velocityVector;
-// 	let Vn = Vector3.Dot (N, V) * N;
-// 	let Vt = V - Vn;
-// 	let newVelocityVector = Vt - coefficientOfRestitution * Vn;
-// 	body.velocityVector = newVelocityVector;
-
-// }
-
-// //For particle/particle
-// void ApplyImpulse(CollisionObject col){
-// 	//let randomization = 0.001f;
-// 	//let randomizedVector = new let (Random.Range (-1, 1) * randomization, Random.Range (-1, 1) * randomization, Random.Range (-1, 1) * randomization);
-// 	//vCollisionNormal = vCollisionNormal + randomizedVector;
-
-// 	//body1
-// 	let V = col.body1.velocityVector;
-// 	let Vn = Vector3.Dot (vCollisionNormal, V) * vCollisionNormal;
-
-// 	//body2
-// 	let V2 = col.body2.velocityVector;
-// 	let Vn2 = Vector3.Dot (vCollisionNormal, V2) * vCollisionNormal;
-
-// 	if (!col.body1.isStatic && !col.body2.isStatic) {
-// 		let j = (-(1 + coefficientOfRestitution) *
-// 			(Vector3.Dot (vRelativeVelocity, vCollisionNormal))) /
-// 			((Vector3.Dot (vCollisionNormal, vCollisionNormal)) *
-// 				(1 / col.body1.mass + 1 / col.body2.mass));
-// 		col.body1.velocityVector += ((j * vCollisionNormal) / col.body1.mass);
-// 		j = (-(1 + coefficientOfRestitution) *
-// 			(Vector3.Dot (vRelativeVelocity, vCollisionNormal))) /
-// 			((Vector3.Dot (vCollisionNormal, vCollisionNormal)) *
-// 				(1 / col.body2.mass + 1 / col.body1.mass));
-// 		col.body2.velocityVector -= ((j * vCollisionNormal) / col.body2.mass);
-// 	} else if (col.body1.isStatic && !col.body2.isStatic) {
-// 		let j = (-(1 + coefficientOfRestitution) *
-// 			(Vector3.Dot (vRelativeVelocity, vCollisionNormal))) /
-// 			((Vector3.Dot (vCollisionNormal, vCollisionNormal)) *
-// 				(1 / col.body2.mass));
-// 		col.body2.velocityVector -= ((j * vCollisionNormal) / col.body2.mass);
-// 	} else if (!col.body1.isStatic && col.body2.isStatic) {
-// 		let j = (-(1 + coefficientOfRestitution) *
-// 			(Vector3.Dot (vRelativeVelocity, vCollisionNormal))) /
-// 			((Vector3.Dot (vCollisionNormal, vCollisionNormal)) *
-// 				(1 / col.body1.mass));
-// 		col.body1.velocityVector += ((j * vCollisionNormal) / col.body1.mass);
-// 	}
-// }
+export const processCollisionObjects = (cols) => {
+	cols.forEach((col) => {
+		if (col.plane){
+			narrowPhasePlaneCollision(col);
+		} else {
+			narrowPhaseParticleCollision(col);
+		}
+	});
+}

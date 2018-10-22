@@ -13,7 +13,7 @@
 // 		}
 // 	}
 // }
-import { addPlaneCollision, addParticleCollision } from './Test.js';
+import { addPlaneCollision, addParticleCollision } from './PhysicsEngine.js';
 import {
 	bottomBody,
 	up,
