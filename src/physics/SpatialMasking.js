@@ -79,20 +79,19 @@ export const getSpatialMaskCollisions = () => {
 	CreateMask ();
 	let cols = [];
 
-	bodies.forEach((body) => {
-		cols.push(addPlaneCollision(body, bottomBody, up, body.velocityVector));
-		cols.push(addPlaneCollision(body, topBody, down, body.velocityVector));
-		cols.push(addPlaneCollision(body, leftBody, vRight, body.velocityVector));
-		cols.push(addPlaneCollision(body, rightBody, vLeft, body.velocityVector));
-		cols.push(addPlaneCollision(body, frontBody, vBackward, body.velocityVector));
-		cols.push(addPlaneCollision(body, backBody, vForward, body.velocityVector));
-	});
+	// bodies.forEach((body) => {
+	// 	cols.push(addPlaneCollision(body, bottomBody, up, body.velocityVector));
+	// 	cols.push(addPlaneCollision(body, topBody, down, body.velocityVector));
+	// 	cols.push(addPlaneCollision(body, leftBody, vRight, body.velocityVector));
+	// 	cols.push(addPlaneCollision(body, rightBody, vLeft, body.velocityVector));
+	// 	cols.push(addPlaneCollision(body, frontBody, vBackward, body.velocityVector));
+	// 	cols.push(addPlaneCollision(body, backBody, vForward, body.velocityVector));
+	// });
 
 
 	bodies.forEach((body, j) => {
 		//top
 		if ((bitmasks [j, 1] & boundsBitmasks[0]) > 0) {
-			console.log('asdf');
 			cols.push(addPlaneCollision(body, topBody, down, body.velocityVector));
 		}
 		//bottom
@@ -117,19 +116,19 @@ export const getSpatialMaskCollisions = () => {
 		}
 	});
 
-	// for (let j = bodies.length - 1; j >= 0; j--) {
-	// 	for (let i = 0; i < j; i++) {
-	// 		if (bodies [j] != bodies [i]) {
-	// 			if (!bodies [j].isStatic || !bodies [i].isStatic){
-	// 				if ((bitmasks [j][0] & bitmasks [i][0]) > 0
-	// 					&& (bitmasks [j][1] & bitmasks [i][1]) > 0 
-	// 					&& (bitmasks [j][2] & bitmasks [i][2]) > 0) {
-	// 					cols.push(addParticleCollision(bodies[i], bodies[j]));
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
+	for (let j = bodies.length - 1; j >= 0; j--) {
+		for (let i = 0; i < j; i++) {
+			if (bodies [j] != bodies [i]) {
+				if (!bodies [j].isStatic || !bodies [i].isStatic){
+					if ((bitmasks [j][0] & bitmasks [i][0]) > 0
+						&& (bitmasks [j][1] & bitmasks [i][1]) > 0 
+						&& (bitmasks [j][2] & bitmasks [i][2]) > 0) {
+						cols.push(addParticleCollision(bodies[i], bodies[j]));
+					}
+				}
+			}
+		}
+	}
 
 	return cols;
 }
@@ -162,7 +161,6 @@ const CalcBoundingBitmask = (a, b) => {
 	}
 	Bitmask = Begin | End;
 
-	console.log(dec2bin(Bitmask));
 	return Bitmask;
 }
 
