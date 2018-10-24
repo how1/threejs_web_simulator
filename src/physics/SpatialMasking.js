@@ -90,29 +90,31 @@ export const getSpatialMaskCollisions = () => {
 
 
 	bodies.forEach((body, j) => {
-		//top
-		if ((bitmasks [j, 1] & boundsBitmasks[0]) > 0) {
-			cols.push(addPlaneCollision(body, topBody, down, body.velocityVector));
-		}
 		//bottom
-		if ((bitmasks [j, 1] & boundsBitmasks[1]) > 0 ) {
+		if ((bitmasks [j][1] & boundsBitmasks[1]) > 0 ) {
 			cols.push (addPlaneCollision(body, bottomBody, up, body.velocityVector));
 		}
-		//front //switched
-		if ((bitmasks [j, 2] & boundsBitmasks [2]) > 0) {
-			cols.push (addPlaneCollision(body, backBody, vForward, body.velocityVector));
-		}
-		//back //switched
-		if ((bitmasks [j, 2] & boundsBitmasks [3]) > 0) {
-			cols.push (addPlaneCollision(body, frontBody, vBackward, body.velocityVector));
-		}
-		//left
-		if ((bitmasks [j, 0] & boundsBitmasks [4]) > 0) {
-			cols.push (addPlaneCollision(body, leftBody, vRight, body.velocityVector));
-		}
-		//right
-		if ((bitmasks [j, 0] & boundsBitmasks [5]) > 0) {
-			cols.push (addPlaneCollision(body, rightBody, vLeft, body.velocityVector));
+		if (config.hasBounds){
+			//top
+			if ((bitmasks [j][1] & boundsBitmasks[0]) > 0) {
+				cols.push(addPlaneCollision(body, topBody, down, body.velocityVector));
+			}
+			//front //switched
+			if ((bitmasks [j][2] & boundsBitmasks [2]) > 0) {
+				cols.push (addPlaneCollision(body, backBody, vForward, body.velocityVector));
+			}
+			//back //switched
+			if ((bitmasks [j][2] & boundsBitmasks [3]) > 0) {
+				cols.push (addPlaneCollision(body, frontBody, vBackward, body.velocityVector));
+			}
+			//left
+			if ((bitmasks [j][0] & boundsBitmasks [4]) > 0) {
+				cols.push (addPlaneCollision(body, leftBody, vRight, body.velocityVector));
+			}
+			//right
+			if ((bitmasks [j][0] & boundsBitmasks [5]) > 0) {
+				cols.push (addPlaneCollision(body, rightBody, vLeft, body.velocityVector));
+			}
 		}
 	});
 

@@ -11,33 +11,44 @@ export const RESTING = 3;
 
 const COLLISIONTOLERANCE = 0.2;
 const tol = 0.000001;
-const dt = 0.016;
+export const dt = 0.016;
 
 export const narrowPhaseParticleCollision = (col) => {
 	let tryAgain = true;
 	let planesCheck = 0;
-	let tempDT = dt;
+	let tempDT = 0;
+	let divisor = 4;
 	let didPen = false;
 
-	while (tryAgain && tempDT > tol) {
+	while (tryAgain && divisor < 128) {
 
 		tryAgain = false;
 
 		col.body1.status = col.body2.status = CheckForCollision (col);
 		if (col.body1.status == PENETRATING) {
 
-			tempDT /= 2;
+			tempDT += dt/divisor;
+			divisor *= 2;
 			tryAgain = true;
 			didPen = true;
+
 			let tempVel = new THREE.Vector3();
 
-			col.body1.mesh.position.copy(col.body1.oldPosition);
+			// col.body1.mesh.position.copy(col.body1.oldPosition);
 			tempVel.copy(col.body1.velocityVector);
-			col.body1.mesh.position.add(tempVel.multiplyScalar(tempDT));
+			col.body1.mesh.position.sub(tempVel.multiplyScalar(tempDT));
 
-			col.body2.mesh.position.copy(col.body2.oldPosition);
+			// col.body2.mesh.position.copy(col.body2.oldPosition);
 			tempVel.copy(col.body2.velocityVector);
-			col.body2.mesh.position.add(tempVel.multiplyScalar(tempDT));
+			col.body2.mesh.position.sub(tempVel.multiplyScalar(tempDT));
+
+			// col.body1.mesh.position.copy(col.body1.oldPosition);
+			// tempVel.copy(col.body1.velocityVector);
+			// col.body1.mesh.position.add(tempVel.multiplyScalar(tempDT));
+
+			// col.body2.mesh.position.copy(col.body2.oldPosition);
+			// tempVel.copy(col.body2.velocityVector);
+			// col.body2.mesh.position.add(tempVel.multiplyScalar(tempDT));
 
 		} else if (col.body1.status == CONTACT) {
 			// col.body1.applyGravity = false;
@@ -182,6 +193,7 @@ const ApplyImpulse = (col) => {
 }
 
 export const stepSimulation = (body) => {
+
 	const gravityNormalVector = new THREE.Vector3(0,-1,0);
 	if (body.mesh.position.y - body.radius > -config.activeBounds/2) {
 		if (body.status != RESTING) {

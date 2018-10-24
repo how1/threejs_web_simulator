@@ -90,7 +90,6 @@ export const init = () => {
 		const sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
 		const body = Particle(sphere, radius, mass);
 		spheres.push(sphere);
-		const indices = [-1,1];
 		let fail = true;
 		sphere.position.copy(pos);
 		if (bodies.length > 0){
@@ -98,9 +97,15 @@ export const init = () => {
 			while(fail && loop < 100){
 				loop++;
 				fail = false;
-				const xPos = Math.random() * (config.bounds/2-radius) * indices[Math.floor(Math.random() * 2)];
-				const yPos = Math.random() * (config.bounds/2-radius) * indices[Math.floor(Math.random() * 2)];
-				const zPos = Math.random() * (config.bounds/2-radius) * indices[Math.floor(Math.random() * 2)];
+
+				const xPos = getRandomPosition();
+				const yPos = getRandomPosition();
+				const zPos = getRandomPosition();
+
+				// const xPos = 30; //x coll test
+				// const yPos = -30;
+				// const zPos = 0;
+
 				pos = new THREE.Vector3(xPos, yPos, zPos);
 				sphere.position.copy(pos);
 				bodies.forEach((otherBody) => {
@@ -120,22 +125,28 @@ export const init = () => {
 		bodies.push(body);
 		scene.add(sphere);
 	};
+
+	const getRandomPosition = () => {
+		const indices = [-1,1];
+		return Math.random() * (config.bounds/2-radius) * indices[Math.floor(Math.random() * 2)];
+	}
+
 	let radius = config.radius;
 
 	for (let x = 0; x < config.numObjects; x++){
 		// createSphere(radius, 1, new THREE.Vector3(-1,-config.bounds/2+radius+4,0));	
 		// createSphere(radius, 1, new THREE.Vector3(0,-config.bounds/2+radius+3,-20));	
 		// createSphere(radius, 1, new THREE.Vector3(1,-config.bounds/2+radius+2, 15));	
-		// createSphere(radius, config.mass, new THREE.Vector3(-30,-30,0)); x coll test
+		// createSphere(radius, config.mass, new THREE.Vector3(-30,-30,0)); //x coll test
 		// createSphere(radius, config.mass, new THREE.Vector3(0,-30, 30)); //y coll test
-		createSphere(radius, config.mass, new THREE.Vector3()); //y coll test
+		createSphere(radius, config.mass, new THREE.Vector3()); 
 
-		if (tooManyObjects){
-			if (config.whichBroad == 2){
-				startSweepAndPrune(bodies);
-			}
-			return;
-		}
+		// if (tooManyObjects){
+		// 	if (config.whichBroad == 2){
+		// 		startSweepAndPrune(bodies);
+		// 	}
+		// 	return;
+		// }
 	}
 
 	let index = [-1, 1];
@@ -150,6 +161,9 @@ export const init = () => {
 		let initVel = new THREE.Vector3(Math.random() * directionX, Math.random(0) * directionY, Math.random() * directionZ);
 		body.AddForce(initVel.multiplyScalar(speed * body.mass));
 	});
+
+	// bodies[0].AddForce(new THREE.Vector3(-config.initialVelocity, 0 ,0));//x coll test
+	// bodies[1].AddForce(new THREE.Vector3(config.initialVelocity, 0 ,0));
 
 	startSweepAndPrune(bodies);
 	startSpatialMasking(radius, bodies);

@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 
-import { bodies, camera, renderer, scene, init } from "./physics/Initialize.js";
 import { config } from './physics/Config.js';
-import { getSAPCollisions } from './physics/SAP.js';
-import { getSpatialMaskCollisions } from './physics/SpatialMasking.js';
+import { bodies, camera, renderer, scene, init } from "./physics/Initialize.js";
+import { processCollisionObjects, setDt, stepSimulation } from "./physics/PhysicsEngine.js";
 import { makePlanes, removePlanes } from './physics/RenderPlanes.js';
-import { processCollisionObjects, stepSimulation } from "./physics/PhysicsEngine.js";
+import { getSAPCollisions } from './physics/SAP.js';
 import { simple } from './physics/Simple.js';
+import { getSpatialMaskCollisions } from './physics/SpatialMasking.js';
 import 'normalize.css/normalize.css';
 import './styles/styles.scss';
 

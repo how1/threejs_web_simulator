@@ -5,14 +5,15 @@ import { GameLoop } from '../app.js';
 
 export let config = {
 	whichBroad: 3,
+	hasBounds: true,
 	bounds: 100,
 	activeBounds: 0,
-	numObjects: 1,
+	numObjects: 2,
 	gravity: 0,
 	radius: 1,
-	initialVelocity: 10000,
+	initialVelocity: 50000,
 	drag: 0,
-	cof: .9,
+	cof: 1,
 	mass: 10,
 	sphereVerts: 32
 };
@@ -29,11 +30,12 @@ var gui = new dat.GUI();
 var physics = gui.addFolder('Config');
 
 physics.add(config, 'whichBroad', { Simple: 1, SAP: 2, SpatialMask: 3} ).name('Algorithm');
+physics.add(config, 'hasBounds').name('Walls');
 physics.add(config, 'bounds').name('Bounds').min(4).max(10000).step(1);
 physics.add(config, 'numObjects').name('# Objects').min(0).max(2500).step(1);
 physics.add(config, 'gravity').name('Gravity').min(-20).max(20).step(.1);
 physics.add(config, 'radius').name('Radius').min(.0001).max(10).step(.0001);
-physics.add(config, 'initialVelocity', 0, 3).name('Initial Velocity').min(0).max(10000).step(100);
+physics.add(config, 'initialVelocity', 0, 3).name('Initial Velocity').min(0).max(100000).step(1);
 physics.add(config, 'drag').name('Drag').min(0).max(1).step(0.01);
 physics.add(config, 'mass').name('Mass').min(1).max(10000).step(1);
 physics.add(config, 'cof').name('Elasticity').min(0).max(1).step(0.01);

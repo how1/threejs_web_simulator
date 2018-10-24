@@ -33,11 +33,13 @@ export const simple = (bodies, stepSimulation) => {
 	let cols = [];
 	bodies.forEach((body) => {
 		cols.push(addPlaneCollision(body, bottomBody, up, body.velocityVector));
-		cols.push(addPlaneCollision(body, topBody, down, body.velocityVector));
-		cols.push(addPlaneCollision(body, leftBody, vRight, body.velocityVector));
-		cols.push(addPlaneCollision(body, rightBody, vLeft, body.velocityVector));
-		cols.push(addPlaneCollision(body, frontBody, vBackward, body.velocityVector));
-		cols.push(addPlaneCollision(body, backBody, vForward, body.velocityVector));
+		if (config.hasBounds){
+			cols.push(addPlaneCollision(body, topBody, down, body.velocityVector));
+			cols.push(addPlaneCollision(body, leftBody, vRight, body.velocityVector));
+			cols.push(addPlaneCollision(body, rightBody, vLeft, body.velocityVector));
+			cols.push(addPlaneCollision(body, frontBody, vBackward, body.velocityVector));
+			cols.push(addPlaneCollision(body, backBody, vForward, body.velocityVector));
+		}
 	});
 	for (let index = 0; index < bodies.length; index++){
 		for (let x = bodies.length-1; x > index; x--){
