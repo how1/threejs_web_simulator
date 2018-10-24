@@ -7,7 +7,7 @@ import { makePlanes, removePlanes } from './physics/RenderPlanes.js';
 import { getSAPCollisions } from './physics/SAP.js';
 import { simple } from './physics/Simple.js';
 import { getSpatialMaskCollisions } from './physics/SpatialMasking.js';
-import 'normalize.css/normalize.css';
+import 'normalize.css';
 import './styles/styles.scss';
 
 init();
