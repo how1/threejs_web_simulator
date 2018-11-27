@@ -28,6 +28,7 @@ import {
 	backBody,
 	vForward
 } from "./RenderPlanes.js";
+import { config } from "./Config.js";
 
 export const simple = (bodies, stepSimulation) => {
 	let cols = [];

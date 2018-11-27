@@ -71,4 +71,15 @@ export const makePlanes = (scene, bounds) => {
 		front.rotation.y = Math.PI;
 	}
 
+	else {
+		//floor
+		const invisiblePlaneMaterial = new THREE.MeshPhongMaterial( {color: 0xffffff, side: THREE.FrontSide});
+		const bottom = new THREE.Mesh(planeGeometry, invisiblePlaneMaterial);
+		scene.add(bottom);
+		bottomBody = Plane(bottom, 'bottom', new THREE.Vector3(0,0,1), new THREE.Vector3(1,0,0), new THREE.Vector3(0,-config.activeBounds/2,0));
+		up = new THREE.Vector3(0,1,0);
+		bottom.position.y = -config.activeBounds/2;
+		bottom.rotation.x = Math.PI / 2;
+	}
+
 }

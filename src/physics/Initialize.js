@@ -31,7 +31,7 @@ window.addEventListener('resize', () => {
 	camera.updateProjectionMatrix();
 });
 
-camera.position.z = 100;
+camera.position.z = 120;
 
 export let bodies = [];
 let spheres = [];
@@ -53,6 +53,8 @@ export const init = () => {
 	scene = new THREE.Scene();
 	bodies = [];
 
+	config.hasBounds = config.activeHasBounds;
+
 	let controls = new THREE.OrbitControls(camera, renderer.domElement);
 
 	const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
@@ -62,9 +64,8 @@ export const init = () => {
 	const ambientLight = new THREE.AmbientLight( 0xcccccc, 1 );
 	scene.add(ambientLight);
 
-	config.activeBounds = config.bounds;
-	makePlanes(scene, config.bounds);
-
+	// config.activeBounds = config.bounds;
+	makePlanes(scene, config.activeBounds);
 
 	spheres = [];
 
@@ -126,11 +127,6 @@ export const init = () => {
 		scene.add(sphere);
 	};
 
-	const getRandomPosition = () => {
-		const indices = [-1,1];
-		return Math.random() * (config.bounds/2-radius) * indices[Math.floor(Math.random() * 2)];
-	}
-
 	let radius = config.radius;
 
 	for (let x = 0; x < config.numObjects; x++){
@@ -140,26 +136,10 @@ export const init = () => {
 		// createSphere(radius, config.mass, new THREE.Vector3(-30,-30,0)); //x coll test
 		// createSphere(radius, config.mass, new THREE.Vector3(0,-30, 30)); //y coll test
 		createSphere(radius, config.mass, new THREE.Vector3()); 
-
-		// if (tooManyObjects){
-		// 	if (config.whichBroad == 2){
-		// 		startSweepAndPrune(bodies);
-		// 	}
-		// 	return;
-		// }
 	}
 
-	let index = [-1, 1];
 	bodies.forEach((body) => {
-		const speed = config.initialVelocity;
-		let posNeg = Math.floor(Math.random() * 2);
-		let directionX = index[posNeg];
-		posNeg = Math.floor(Math.random() * 2);
-		let directionY = index[posNeg];
-		posNeg = Math.floor(Math.random() * 2);
-		let directionZ = index[posNeg];
-		let initVel = new THREE.Vector3(Math.random() * directionX, Math.random(0) * directionY, Math.random() * directionZ);
-		body.AddForce(initVel.multiplyScalar(speed * body.mass));
+		applyInitialVelocity(body, config.initialVelocity);
 	});
 
 	// bodies[0].AddForce(new THREE.Vector3(-config.initialVelocity, 0 ,0));//x coll test
@@ -169,3 +149,83 @@ export const init = () => {
 	startSpatialMasking(radius, bodies);
 
 }
+
+export const createSingleSphere = (newObject) => {
+	const blue = 0x0000ff;
+	let colors = [0,1,2,3,4,5,6,7,8,9,'a','b','c','d','e','f'];
+	let r1 = Math.floor(Math.random() * colors.length);
+	let r2 = Math.floor(Math.random() * colors.length);
+	let g1 = Math.floor(Math.random() * colors.length);
+	let g2 = Math.floor(Math.random() * colors.length);
+	let b1 = Math.floor(Math.random() * colors.length);
+	let b2 = Math.floor(Math.random() * colors.length);
+	let color = '0x' + colors[r1] + colors[r2] + colors[g1] + colors[g2] + colors[b1] + colors[b2];
+	color = parseInt(color);
+
+	const sphereGeometry = new THREE.SphereGeometry( newObject.radius, config.sphereVerts, config.sphereVerts );
+	const sphereMaterial = new THREE.MeshPhongMaterial( {color: color} );
+	const sphereMesh = new THREE.Mesh( sphereGeometry, sphereMaterial );
+	const body = Particle(sphereMesh, newObject.radius, newObject.mass);
+	spheres.push(sphereMesh);
+	let fail = true;
+	let pos = new THREE.Vector3();
+	const xPos = getRandomPosition();
+	const yPos = getRandomPosition();
+	const zPos = getRandomPosition();
+	pos = new THREE.Vector3(xPos, yPos, zPos);
+	sphereMesh.position.copy(pos);
+	if (bodies.length > 0){
+
+		let removeThese = [];
+		let removeTheseMeshes = [];
+		bodies.forEach((otherBody) => {
+			if (body != otherBody){
+				let result = CheckForCollision(addParticleCollision(body, otherBody));
+				if (result == PENETRATING || result == CONTACT){
+					scene.remove(otherBody.mesh);
+					removeThese.push(otherBody);
+					removeTheseMeshes.push(otherBody.mesh);
+				}
+			}
+		});
+		let keepBodies = bodies.filter((body) => 
+			!removeThese.includes(body)
+		);
+		bodies = keepBodies;
+		spheres = spheres.filter((sphere) => 
+			!removeTheseMeshes.includes(sphere)
+		);
+		removeTheseMeshes.forEach((sphere) => {
+			sphere.geometry.dispose();
+			sphere.geometry = undefined;
+			sphere.material.dispose();
+			sphere.material = undefined;
+		});
+	}
+	
+	bodies.push(body);
+	scene.add(sphereMesh);
+	applyInitialVelocity(body, newObject.initialVelocity);
+
+	startSweepAndPrune(bodies);
+	startSpatialMasking(config.radius, bodies);
+}
+
+const getRandomPosition = () => {
+	const indices = [-1,1];
+	return Math.random() * (config.activeBounds/2-config.radius) * indices[Math.floor(Math.random() * 2)];
+}
+
+
+const applyInitialVelocity = (body, initialVelocity) => {
+	let index = [-1, 1];
+	let posNeg = Math.floor(Math.random() * 2);
+	let directionX = index[posNeg];
+	posNeg = Math.floor(Math.random() * 2);
+	let directionY = index[posNeg];
+	posNeg = Math.floor(Math.random() * 2);
+	let directionZ = index[posNeg];
+	let initVel = new THREE.Vector3(Math.random() * directionX, Math.random(0) * directionY, Math.random() * directionZ);
+	body.AddForce(initVel.multiplyScalar(initialVelocity * body.mass));
+}
+

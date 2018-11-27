@@ -16,39 +16,46 @@ export const dt = 0.016;
 export const narrowPhaseParticleCollision = (col) => {
 	let tryAgain = true;
 	let planesCheck = 0;
-	let tempDT = 0;
-	let divisor = 4;
+	// let tempDT = 0;
+	let tempDT = dt;
+	// let divisor = 4;
 	let didPen = false;
 
-	while (tryAgain && divisor < 128) {
+	while (tryAgain && tempDT > tol) {
 
 		tryAgain = false;
 
 		col.body1.status = col.body2.status = CheckForCollision (col);
 		if (col.body1.status == PENETRATING) {
 
-			tempDT += dt/divisor;
-			divisor *= 2;
+			tempDT /= 2;
+			// divisor *= 2;
+			// tempDT *= .9;
+			// if (tempDT < tol){
+			// 	//col.body1.velocityVector.negate();
+			// 	//col.body2.velocityVector.negate();
+			// }
+
 			tryAgain = true;
 			didPen = true;
 
 			let tempVel = new THREE.Vector3();
 
-			// col.body1.mesh.position.copy(col.body1.oldPosition);
-			tempVel.copy(col.body1.velocityVector);
-			col.body1.mesh.position.sub(tempVel.multiplyScalar(tempDT));
-
-			// col.body2.mesh.position.copy(col.body2.oldPosition);
-			tempVel.copy(col.body2.velocityVector);
-			col.body2.mesh.position.sub(tempVel.multiplyScalar(tempDT));
-
-			// col.body1.mesh.position.copy(col.body1.oldPosition);
+			// // col.body1.mesh.position.copy(col.body1.oldPosition);
 			// tempVel.copy(col.body1.velocityVector);
-			// col.body1.mesh.position.add(tempVel.multiplyScalar(tempDT));
+			// col.body1.mesh.position.sub(tempVel.multiplyScalar(tempDT));
 
-			// col.body2.mesh.position.copy(col.body2.oldPosition);
+			// // col.body2.mesh.position.copy(col.body2.oldPosition);
 			// tempVel.copy(col.body2.velocityVector);
-			// col.body2.mesh.position.add(tempVel.multiplyScalar(tempDT));
+			// col.body2.mesh.position.sub(tempVel.multiplyScalar(tempDT));
+
+			col.body1.mesh.position.copy(col.body1.oldPosition);
+			tempVel.copy(col.body1.velocityVector);
+			col.body1.mesh.position.add(tempVel.multiplyScalar(tempDT));
+
+			col.body2.mesh.position.copy(col.body2.oldPosition);
+			tempVel.copy(col.body2.velocityVector);
+			col.body2.mesh.position.add(tempVel.multiplyScalar(tempDT));
 
 		} else if (col.body1.status == CONTACT) {
 			// col.body1.applyGravity = false;
@@ -63,7 +70,7 @@ export const CheckForCollision = (col) => {
 	tmp.copy(col.body1.mesh.position);
 	let d = new THREE.Vector3();
 	d.copy(tmp.sub(col.body2.mesh.position));
-	let s = d.length() - col.radiusSum;
+	let s = d.length() - (col.body1.radius + col.body2.radius);
 	let Vrn = col.relativeVelocity.dot(col.collisionNormal);
 	if ((Math.abs(s) <= COLLISIONTOLERANCE) && (Vrn < 0.0)) {
 		return CONTACT;
