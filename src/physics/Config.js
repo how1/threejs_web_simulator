@@ -33,7 +33,7 @@ const physics = gui.addFolder('Config');
 physics.add(config, 'whichBroad', { Simple: 1, SAP: 2, SpatialMask: 3} ).name('Algorithm');
 physics.add(config, 'activeHasBounds').name('Walls');
 physics.add(config, 'bounds').name('Bounds').min(4).max(10000).step(1);
-physics.add(config, 'numObjects').name('# Objects').min(0).max(100000).step(1);
+physics.add(config, 'numObjects').name('# Objects').min(0).max(10000).step(1);
 physics.add(config, 'gravity').name('Gravity').min(-20).max(20).step(.1);
 physics.add(config, 'radius').name('Radius').min(.0001).max(10).step(.0001);
 physics.add(config, 'initialVelocity', 0, 3).name('Initial Velocity').min(0).max(100000).step(1);
