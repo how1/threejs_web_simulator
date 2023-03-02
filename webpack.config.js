@@ -29,7 +29,7 @@
 
 const path = require('path');
 const webpack = require('webpack')
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
@@ -40,13 +40,20 @@ if (process.env.NODE_ENV === 'development'){
 
 module.exports = (env) => {
 	const isProduction = env === 'production';
-	const CSSExtract = new ExtractTextPlugin('styles.css');
 
 	return ({
 		entry: ['babel-polyfill', './src/app.js'],
 		output: {
 			path: path.join(__dirname, 'public'),
 			filename: 'bundle.js'
+		},
+		resolve:{
+			fallback: {
+				"fs" : false
+			}
+		},
+		experiments: {
+			topLevelAwait: true
 		},
 		module: {
 			rules: [{
@@ -56,22 +63,51 @@ module.exports = (env) => {
 			}, {
 				test: /\.s?css$/,
 				use: [
-					"style-loader",
+					MiniCssExtractPlugin.loader,
 					"css-loader",
 					"sass-loader"
 				]
+			}, {
+			    test: /\.(jpe?g|gif|png|svg)$/i,
+			    use: {
+			      loader: 'url-loader',
+			      options: {
+			        limit: 10000
+			      }
+			    }
+			}, {
+				test: /\.txt$/,
+				use: {
+					loader: 'raw-loader'
+				}
+			}, {
+			    test: /\.ogg$/,
+			    use: {
+			    	loader: 'file-loader',
+			    	 options: {
+				        esModule: false 
+				      }
+			    }
 			}]
 		},
 		plugins: [
-			CSSExtract
-		],
-		devtool: isProduction ? 'source-map' : 'cheap-module-eval-source-map',// 'inline-source-map',
+    new MiniCssExtractPlugin({
+      attributes: {
+        id: "target",
+        "data-target": "example",
+      },
+    }),
+  ],
+		devtool: isProduction ? 'source-map' : 'eval-cheap-module-source-map',// 'inline-source-map',
 		devServer: {
-			contentBase: path.join(__dirname, 'public'),
-			historyApiFallback: true
+			static: {
+      			directory: path.join(__dirname, "./public")
+    		}
 		},
 		node: {
-    		fs: "empty"
+    		global: true,
+ 			__filename: true,
+ 			__dirname: true,
   		}
 	});
 }

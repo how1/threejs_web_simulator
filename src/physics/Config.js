@@ -4,7 +4,7 @@ import { createSingleSphere, init } from './Initialize.js';
 import { GameLoop } from '../app.js';
 
 export let config = {
-	whichBroad: 3,
+	whichBroad: 2,
 	hasBounds: true,
 	activeHasBounds: true,
 	bounds: 100,

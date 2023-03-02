@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import  "./OrbitControls.js";
+import  {OrbitControls} from "./OrbitControls.js";
 import { CheckForCollision, addParticleCollision, PENETRATING, NOCOLLISION, CONTACT } from "./PhysicsEngine.js";
 import { config } from "./Config.js";
 import { Particle } from "./Particle.js";
@@ -55,7 +55,7 @@ export const init = () => {
 
 	config.hasBounds = config.activeHasBounds;
 
-	let controls = new THREE.OrbitControls(camera, renderer.domElement);
+	let controls = new OrbitControls(camera, renderer.domElement);
 
 	const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
 	directionalLight.position.set( 1, 1, 0 );
